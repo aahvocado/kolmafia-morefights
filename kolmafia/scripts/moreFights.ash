@@ -103,7 +103,7 @@ int print_other_sources() {
   return suggested;
 }
 // primary `print_suggested_amount()`
-int print_suggested_amount(item it, int limit, int used, boolean forceSuggest) {
+int print_suggested_amount(item it, int limit, int used, boolean forceSuggest, string fightGainText) {
   string actionname = 'use';
   if (it.inebriety > 0 && it.fullness > 0) {
     actionname = 'eat/drink';
@@ -119,7 +119,7 @@ int print_suggested_amount(item it, int limit, int used, boolean forceSuggest) {
 
   int suggested = get_suggested_amount(it, limit, used);
   if (suggested > 0) {
-    print('• you could ' + actionname + ' ' + suggested + ' ' + it.name, 'green');
+    print('• you could ' + actionname + ' ' + suggested + ' ' + it.name + ' ' + fightGainText, 'green');
   }
 
   int possible = limit - used;
@@ -130,15 +130,31 @@ int print_suggested_amount(item it, int limit, int used, boolean forceSuggest) {
 
   return suggested;
 }
-int print_suggested_amount(item it, int limit, string propertyname, boolean forceSuggest) {
+int print_suggested_amount(item it, int limit, int used, boolean forceSuggest) {
+  boolean hasPVPtext = index_of(it.notes.to_lower_case(), 'pvp fight') >= 0;
+  if (hasPVPtext) {
+    string fightGainText = '(' + it.notes + ')';
+    return print_suggested_amount(it, limit, used, forceSuggest, fightGainText);
+  }
+
+  return print_suggested_amount(it, limit, used, forceSuggest, '');
+}
+int print_suggested_amount(item it, int limit, string propertyname, boolean forceSuggest, string fightGainText) {
   string property = get_property(propertyname);
   if (property == 'false') {
-    return print_suggested_amount(it, limit, 0, forceSuggest);
+    return print_suggested_amount(it, limit, 0, forceSuggest, fightGainText);
   } else if (property == 'true') {
-    return print_suggested_amount(it, limit, 1, forceSuggest);
+    return print_suggested_amount(it, limit, 1, forceSuggest, fightGainText);
   } else {
-    return print_suggested_amount(it, limit, property.to_int(), forceSuggest);
+    return print_suggested_amount(it, limit, property.to_int(), forceSuggest, fightGainText);
   }
+}
+int print_suggested_amount(item it, int limit, string propertyname, boolean forceSuggest) {
+  return print_suggested_amount(it, limit, propertyname, forceSuggest, '');
+}
+int print_suggested_amount(string itemname, int limit, string propertyname, boolean forceSuggest, string fightGainText) {
+  item it = to_item(itemname);
+  return print_suggested_amount(it, limit, propertyname, forceSuggest, fightGainText);
 }
 int print_suggested_amount(string itemname, int limit, string propertyname, boolean forceSuggest) {
   item it = to_item(itemname);
@@ -167,14 +183,14 @@ void main() {
   boolean hasSparred = get_property("_daycareFights").to_boolean();
   if (!hasSparred) {
     totalsuggestions += 1;
-    print('• you could spar at the Boxing Daycare', 'green');
+    print('• you could spar at the Boxing Daycare (+x PvP fights)', 'green');
   }
 
-  totalsuggestions += print_suggested_amount("CSA fire-starting kit", 1, "_fireStartingKitUsed", true);
-  totalsuggestions += print_suggested_amount("Meteorite-Ade", 3, "_meteoriteAdesUsed");
-  totalsuggestions += print_suggested_amount("Daily Affirmation: Keep Free Hate in your Heart", 1, "_affirmationHateUsed");
-  totalsuggestions += print_suggested_amount("Jerks' Health™ Magazine", 5, "_jerksHealthMagazinesUsed");
-  totalsuggestions += print_suggested_amount("confusing LED clock", 1, "_confusingLEDClockUsed");
+  totalsuggestions += print_suggested_amount("CSA fire-starting kit", 1, "_fireStartingKitUsed", true, '(+3 PvP fights)');
+  totalsuggestions += print_suggested_amount("Meteorite-Ade", 3, "_meteoriteAdesUsed", false, '(+3 PvP fights)');
+  totalsuggestions += print_suggested_amount("Daily Affirmation: Keep Free Hate in your Heart", 1, "_affirmationHateUsed", false, '(+3 PvP fights)');
+  totalsuggestions += print_suggested_amount("Jerks' Health™ Magazine", 5, "_jerksHealthMagazinesUsed", false, '(+5 PvP fights)');
+  totalsuggestions += print_suggested_amount("confusing LED clock", 1, "_confusingLEDClockUsed", false,, '(+5 PvP fights, -5 adventures)');
 
   foreach idx, consummablename in extraFightsList {
     item consummableItem = to_item(consummablename);
