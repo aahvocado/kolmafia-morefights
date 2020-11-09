@@ -1,3 +1,14 @@
+/*
+  Version 1.1
+    by dextrial
+
+  todo:
+    - Calculate the Universe
+    - School of Hard Knocks Diploma
+    - Rotten tomato
+    - check if LED clock is already in camp
+ */
+
 string[] extraFightsList = {
   "Shot of Kardashian Gin",
   "5-hour acrimony",
@@ -74,6 +85,22 @@ int get_suggested_amount(item it, int limit, int used) {
 int get_suggested_amount(string itemname, int limit, int used) {
   item it = to_item(itemname);
   return get_suggested_amount(it, limit, used);
+}
+//
+int print_other_sources() {
+  int suggested = 0;
+
+  if (have_familiar($familiar[Robortender]) && my_adventures() > 10) {
+    print('• you could spend time with your Robortender - faster if you equip toggle switch (bounce)!', 'green');
+    suggested += 1;
+  }
+
+  if (have_familiar($familiar[Artistic Goth Kid]) && my_adventures() > 5) {
+    print('• you could spend time with your Artistic Goth Kid - faster if you equip little wooden mannequin!', 'green');
+    suggested += 1;
+  }
+
+  return suggested;
 }
 // primary `print_suggested_amount()`
 int print_suggested_amount(item it, int limit, int used, boolean forceSuggest) {
@@ -153,6 +180,8 @@ void main() {
     item consummableItem = to_item(consummablename);
     totalsuggestions += print_suggested_amount(consummableItem, amount_consummable(consummableItem), 0);
   }
+
+  totalsuggestions += print_other_sources();
 
   if (totalsuggestions == 0) {
     print('...looks like there might not be any fight granting thing available for you :(', 'purple');
