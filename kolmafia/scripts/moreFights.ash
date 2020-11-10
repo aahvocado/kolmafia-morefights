@@ -1,12 +1,11 @@
 /*
-  Version 1.1
+  Version 1.2
     by dextrial
 
   todo:
     - Calculate the Universe
     - School of Hard Knocks Diploma
     - Rotten tomato
-    - check if LED clock is already in camp
  */
 
 string[] extraFightsList = {
@@ -86,22 +85,6 @@ int get_suggested_amount(string itemname, int limit, int used) {
   item it = to_item(itemname);
   return get_suggested_amount(it, limit, used);
 }
-//
-int print_other_sources() {
-  int suggested = 0;
-
-  if (have_familiar($familiar[Robortender]) && my_adventures() > 10) {
-    print('• you could spend time with your Robortender - faster if you equip toggle switch (bounce)!', 'green');
-    suggested += 1;
-  }
-
-  if (have_familiar($familiar[Artistic Goth Kid]) && my_adventures() > 5) {
-    print('• you could spend time with your Artistic Goth Kid - faster if you equip little wooden mannequin!', 'green');
-    suggested += 1;
-  }
-
-  return suggested;
-}
 // primary `print_suggested_amount()`
 int print_suggested_amount(item it, int limit, int used, boolean forceSuggest, string fightGainText) {
   string actionname = 'use';
@@ -169,6 +152,36 @@ int print_suggested_amount(item it, int limit, string propertyname) {
 int print_suggested_amount(item it, int limit, int used) {
   return print_suggested_amount(it, limit, used, false);
 }
+//
+int print_other_sources() {
+  int suggested = 0;
+
+  if (have_familiar($familiar[Robortender]) && my_adventures() > 10) {
+    print('• you could spend time with your Robortender - faster if you equip toggle switch (bounce)!', 'green');
+    suggested += 1;
+  }
+
+  if (have_familiar($familiar[Artistic Goth Kid]) && my_adventures() > 5) {
+    print('• you could spend time with your Artistic Goth Kid - faster if you equip little wooden mannequin!', 'green');
+    suggested += 1;
+  }
+
+  return suggested;
+}
+int check_LED_clock() {
+  if (get_property('_confusingLEDClockUsed').to_boolean()) {
+    return 0;
+  }
+
+  string dwellingText = visit_url('campground.php?action=inspectdwelling');
+  boolean hasClockInDwelling = index_of(dwellingText, "You've got a really confusing clock on your nightstand.") >= 0;
+  if (hasClockInDwelling) {
+    print('• you could rest to use the confusing LED clock in your dwelling (+5 PvP fights, -5 adventures)', 'green');
+    return 1;
+  }
+
+  return print_suggested_amount(to_item("confusing LED clock"), 1, 0, false, '(+5 PvP fights, -5 adventures)');
+}
 void main() {
   print('Time for more PVP fights!', 'purple');
   int totalsuggestions = 0;
@@ -190,7 +203,7 @@ void main() {
   totalsuggestions += print_suggested_amount("Meteorite-Ade", 3, "_meteoriteAdesUsed", false, '(+3 PvP fights)');
   totalsuggestions += print_suggested_amount("Daily Affirmation: Keep Free Hate in your Heart", 1, "_affirmationHateUsed", false, '(+3 PvP fights)');
   totalsuggestions += print_suggested_amount("Jerks' Health™ Magazine", 5, "_jerksHealthMagazinesUsed", false, '(+5 PvP fights)');
-  totalsuggestions += print_suggested_amount("confusing LED clock", 1, "_confusingLEDClockUsed", false,, '(+5 PvP fights, -5 adventures)');
+  totalsuggestions += check_LED_clock();
 
   foreach idx, consummablename in extraFightsList {
     item consummableItem = to_item(consummablename);
