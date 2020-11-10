@@ -4,7 +4,6 @@
 
   todo:
     - Calculate the Universe
-    - School of Hard Knocks Diploma
     - Rotten tomato
  */
 
@@ -182,28 +181,41 @@ int check_LED_clock() {
 
   return print_suggested_amount(to_item("confusing LED clock"), 1, 0, false, '(+5 PvP fights, -5 adventures)');
 }
+int check_hardknocks() {
+  item HARD_KNOCKS_DIPLOMA = to_item('School of Hard Knocks Diploma');
+  int estimatedAdv = truncate(available_amount(HARD_KNOCKS_DIPLOMA) * 1.25);
+  return print_suggested_amount(HARD_KNOCKS_DIPLOMA, 1, "_hardKnocksDiplomaUsed", true, '(~' + estimatedAdv + 'PvP fights)');
+}
+int check_boxingdaycare() {
+  boolean hasSparred = get_property("_daycareFights").to_boolean();
+  if (!hasSparred) {
+    print('• you could spar at the Boxing Daycare (+x PvP fights)', 'green');
+    return 1;
+  }
+  return 0;
+}
+int check_deck() {
+  boolean canCheatDeck = (15 - get_property("_deckCardsDrawn").to_int()) >= 5;
+  boolean hasUsedClubs = contains_text(get_property("_deckCardsSeen"), 'Clubs');
+  if (canCheatDeck && !hasUsedClubs) {
+    print('• you could ' + '"cheat Clubs"', 'green');
+    return 1;
+  }
+
+  return 0;
+}
 void main() {
   print('Time for more PVP fights!', 'purple');
   int totalsuggestions = 0;
 
-  boolean canCheatDeck = (15 - get_property("_deckCardsDrawn").to_int()) >= 5;
-  boolean hasUsedClubs = contains_text(get_property("_deckCardsSeen"), 'Clubs');
-  if (canCheatDeck && !hasUsedClubs) {
-    totalsuggestions += 1;
-    print('• you could ' + '"cheat Clubs"', 'green');
-  }
-
-  boolean hasSparred = get_property("_daycareFights").to_boolean();
-  if (!hasSparred) {
-    totalsuggestions += 1;
-    print('• you could spar at the Boxing Daycare (+x PvP fights)', 'green');
-  }
-
+  totalsuggestions += check_LED_clock(); // first because of a visit_url...
+  totalsuggestions += check_boxingdaycare();
+  totalsuggestions += check_deck();
+  totalsuggestions += check_hardknocks();
   totalsuggestions += print_suggested_amount("CSA fire-starting kit", 1, "_fireStartingKitUsed", true, '(+3 PvP fights)');
   totalsuggestions += print_suggested_amount("Meteorite-Ade", 3, "_meteoriteAdesUsed", false, '(+3 PvP fights)');
   totalsuggestions += print_suggested_amount("Daily Affirmation: Keep Free Hate in your Heart", 1, "_affirmationHateUsed", false, '(+3 PvP fights)');
   totalsuggestions += print_suggested_amount("Jerks' Health™ Magazine", 5, "_jerksHealthMagazinesUsed", false, '(+5 PvP fights)');
-  totalsuggestions += check_LED_clock();
 
   foreach idx, consummablename in extraFightsList {
     item consummableItem = to_item(consummablename);
